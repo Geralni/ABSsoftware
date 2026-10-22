@@ -1,0 +1,53 @@
+openapi: 3.0.3
+info:
+  title: ABC Software Corp - Sistema de Facturación Electrónica SUNAT UBL 2.1
+  description: >
+    API REST para la emisión, anulación, consulta y migración de comprobantes
+    electrónicos bajo la normativa tributaria peruana (SUNAT) y el estándar
+    OASIS UBL 2.1 (UBL-Invoice-2.1.xsd). Soporta clientes nativos Windows (.MSI)
+    y Android (.APK).
+  version: 1.0.0
+  contact:
+    name: Arquitectura de Software - ABC Software Corp
+    email: arquitectura@abcsoftware.pe
+
+servers:
+  - url: https://api.abcsoftware.pe/api/v1
+    description: Servidor Central de Producción
+  - url: https://api-qa.abcsoftware.pe/api/v1
+    description: Servidor de Pruebas (Ambiente Beta SUNAT / OSE)
+  - url: http://localhost:8000/api/v1
+    description: Monolito Local / Servidor de Desarrollo en Tienda
+
+paths:
+  /facturas:
+    $ref: './spec/paths/facturas.yaml#/facturas'
+  /facturas/{id}:
+    $ref: './spec/paths/facturas.yaml#/facturas_id'
+  /facturas/{id}/xml:
+    $ref: './spec/paths/facturas.yaml#/facturas_id_xml'
+  /facturas/{id}/anular:
+    $ref: './spec/paths/facturas.yaml#/facturas_id_anular'
+  /migracion/legado:
+    $ref: './spec/paths/migracion.yaml#/migracion_legado'
+
+components:
+  schemas:
+    Cliente:
+      $ref: './spec/schemas/Cliente.yaml'
+    DetalleFactura:
+      $ref: './spec/schemas/DetalleFactura.yaml'
+    FacturaInput:
+      $ref: './spec/schemas/FacturaInput.yaml'
+    FacturaResponse:
+      $ref: './spec/schemas/FacturaResponse.yaml'
+    AnulacionInput:
+      $ref: './spec/schemas/AnulacionInput.yaml'
+    AnulacionResponse:
+      $ref: './spec/schemas/AnulacionResponse.yaml'
+    MigracionLegado:
+      $ref: './spec/schemas/MigracionLegado.yaml'
+    MigracionResponse:
+      $ref: './spec/schemas/MigracionResponse.yaml'
+    ErrorResponse:
+      $ref: './spec/schemas/ErrorResponse.yaml'

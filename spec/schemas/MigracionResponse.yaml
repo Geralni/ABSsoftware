@@ -1,0 +1,40 @@
+type: object
+properties:
+  loteId:
+    type: string
+    example: "LOTE-MIG-202610-01"
+  totalClientesProcesados:
+    type: integer
+    example: 150
+  totalClientesMigrados:
+    type: integer
+    example: 146
+  totalClientesRechazados:
+    type: integer
+    example: 4
+  totalProductosProcesados:
+    type: integer
+    example: 820
+  totalProductosMigrados:
+    type: integer
+    example: 818
+  totalProductosRechazados:
+    type: integer
+    example: 2
+  erroresSaneamiento:
+    type: array
+    items:
+      type: object
+      properties:
+        entidad:
+          type: string
+          example: "Cliente"
+        idLegado:
+          type: string
+          example: "CLI-0089"
+        causa:
+          type: string
+          example: "RUC '2010001' no tiene 11 dígitos ni pasa checksum módulo 11 SUNAT."
+  estado:
+    type: string
+    example: "MIGRACION_COMPLETADA_CON_OBSERVACIONES"

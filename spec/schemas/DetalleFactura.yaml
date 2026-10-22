@@ -1,0 +1,134 @@
+type: object
+required:
+  - linea
+  - codigoProducto
+  - descripcion
+  - unidadMedida
+  - cantidad
+  - valorUnitario
+  - precioUnitarioConIgv
+  - codigoAfectacionIgv
+  - montoValorVenta
+  - montoIgv
+properties:
+  linea:
+    type: integer
+    description: Número correlativo del ítem dentro del comprobante (1..N).
+    example: 1
+  codigoProducto:
+    type: string
+    maxLength: 30
+    description: Código interno o SKU del bien o servicio prestado.
+    example: "PRD-TUB-01"
+  codigoProductoSunat:
+    type: string
+    maxLength: 10
+    description: Código de producto según el estándar internacional UNSPSC exigido por SUNAT (Catálogo 25).
+    example: "40171501"
+  descripcion:
+    type: string
+    maxLength: 250
+    description: Descripción clara y detallada del bien o servicio según normativa de SUNAT.
+    example: "Tubo PVC Presión 1/2 pulgada x 5 metros"
+  unidadMedida:
+    type: string
+    description: >
+      Unidad de Medida comercial según Catálogo 03 de SUNAT.
+      'NIU' = Unidades, 'KGM' = Kilogramos, 'ZZ' = Servicios, 'MTR' = Metros, 'BX' = Cajas.
+    example: "NIU"
+  cantidad:
+    type: number
+    format: double
+    minimum: 0.0001
+    description: Cantidad del bien despachado o servicio contratado.
+    example: 10.0
+  valorUnitario:
+    type: number
+    format: double
+    minimum: 0.0
+    description: Valor unitario de venta sin incluir ningún tributo (Base imponible unitaria).
+    example: 15.00
+  precioUnitarioConIgv:
+    type: number
+    format: double
+    minimum: 0.0
+    description: >
+      Precio de venta unitario comercial que incluye IGV y demás tributos aplicables.
+      Mapea a cac:PricingReference / cac:AlternativeConditionPrice con código de Catálogo 16 = '01' (Precio unitario con IGV).
+    example: 17.70
+  codigoAfectacionIgv:
+    type: string
+    description: >
+      Código de Tipo de Afectación al IGV según el Catálogo 07 de SUNAT:
+      '10' = Gravado - Operación Onerosa
+      '11' = Gravado - Retiro por premio
+      '12' = Gravado - Retiro por donación
+      '20' = Exonerado - Operación Onerosa
+      '30' = Inafecto - Operación Onerosa
+      '40' = Exportación de bienes o servicios
+    enum: ["10", "11", "12", "13", "14", "15", "16", "17", "20", "21", "30", "31", "32", "33", "34", "35", "36", "40"]
+    example: "10"
+  porcentajeIgv:
+    type: number
+    format: double
+    description: Tasa porcentual del IGV aplicada a la línea (18.0 para operaciones gravadas estándar).
+    example: 18.00
+  montoIgv:
+    type: number
+    format: double
+    description: Monto total de IGV calculado para la línea (montoValorVenta * porcentajeIgv / 100).
+    example: 27.00
+  codigoSistemaIsc:
+    type: string
+    description: >
+      Código de Sistema de Cálculo del Impuesto Selectivo al Consumo (ISC) según Catálogo 08 de SUNAT:
+      '01' = Sistema al Valor (Apéndice IV, lit. A del TUO IGV)
+      '02' = Sistema Específico (Apéndice IV, lit. B del TUO IGV)
+      '03' = Sistema al Valor según Precio de Venta al Público (Apéndice IV, lit. C del TUO IGV)
+    enum: ["01", "02", "03"]
+    example: "01"
+  porcentajeIsc:
+    type: number
+    format: double
+    default: 0.0
+    description: Tasa del ISC si el producto está gravado con este tributo.
+    example: 0.0
+  montoIsc:
+    type: number
+    format: double
+    default: 0.0
+    description: Monto total de ISC para la línea.
+    example: 0.0
+  aplicaIcbper:
+    type: boolean
+    default: false
+    description: Indica si el ítem corresponde a bolsas de plástico gravadas con el Impuesto al Consumo de Bolsas de Plástico (Ley N° 30884).
+    example: false
+  cantidadBolsas:
+    type: integer
+    default: 0
+    description: Número de bolsas de plástico sujetas al impuesto.
+    example: 0
+  montoIcbperUnitario:
+    type: number
+    format: double
+    default: 0.0
+    description: Tarifa legal fija del ICBPER por unidad de bolsa (e.g. 0.50 PEN).
+    example: 0.00
+  montoIcbper:
+    type: number
+    format: double
+    default: 0.0
+    description: Monto total de ICBPER calculado (cantidadBolsas * montoIcbperUnitario).
+    example: 0.00
+  descuentoLinea:
+    type: number
+    format: double
+    default: 0.0
+    description: Descuentos comerciales aplicables a la línea antes de tributos.
+    example: 0.00
+  montoValorVenta:
+    type: number
+    format: double
+    description: Base imponible o valor total de venta de la línea (cantidad * valorUnitario - descuentoLinea).
+    example: 150.00
