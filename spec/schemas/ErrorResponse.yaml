@@ -1,23 +1,23 @@
 type: object
 required:
-  - codigo
-  - mensaje
-  - marcaTiempo
+  - code
+  - message
+  - timestamp
 properties:
-  codigo:
+  code:
     type: string
-    description: Código interno de error o código de excepción SUNAT.
-    example: "VALIDACION_CAMPOS_SUNAT"
-  mensaje:
+    description: Internal error code or official SUNAT exception code (e.g., 'SUNAT_2014').
+    example: "VALIDATION_ERROR_SUNAT"
+  message:
     type: string
-    description: Descripción técnica comprensible del error.
-    example: "El RUC del cliente no cumple con el algoritmo Módulo 11 de SUNAT."
-  detalles:
+    description: Human-readable technical description of the error.
+    example: "Customer RUC does not comply with the SUNAT Modulo 11 checksum algorithm."
+  details:
     type: array
     items:
       type: string
-    example: ["El campo 'detalles[0].afectacionIgv' es obligatorio y debe coincidir con Catálogo 07."]
-  marcaTiempo:
+    example: ["Field 'items[0].igvTaxExemptionCode' is mandatory and must match SUNAT Catalog 07."]
+  timestamp:
     type: string
     format: date-time
     example: "2026-10-22T10:15:35Z"

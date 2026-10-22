@@ -1,0 +1,153 @@
+invoices:
+  post:
+    summary: Create and issue an Electronic Invoice
+    description: >
+      Registers the transaction, validates SUNAT tax rules, invokes the
+      `UBLGenerator` component to transform the invoice into the OASIS `UBL-Invoice-2.1.xsd`
+      structure, applies the X.509 v3 digital signature, and stores the electronic document.
+    operationId: createInvoice
+    tags:
+      - Invoices
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/InvoiceInput.yaml'
+    responses:
+      '201':
+        description: Invoice created, signed UBL 2.1 XML generated successfully.
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/InvoiceResponse.yaml'
+      '400':
+        description: Validation error in SUNAT tax data, RUC checksum or arithmetic totals discrepancy.
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ErrorResponse.yaml'
+      '500':
+        description: Internal server error or failure during UBL 2.1 XML digital signature generation.
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ErrorResponse.yaml'
+
+invoices_id:
+  get:
+    summary: Get Invoice by ID
+    description: Retrieves complete invoice details, official SUNAT legal status, and transaction metadata.
+    operationId: getInvoiceById
+    tags:
+      - Invoices
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: System internal unique UUID of the invoice.
+        schema:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+    responses:
+      '200':
+        description: Invoice found successfully.
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/InvoiceResponse.yaml'
+      '404':
+        description: Invoice not found.
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ErrorResponse.yaml'
+
+invoices_id_xml:
+  get:
+    summary: Download generated and digitally signed UBL 2.1 XML file
+    description: >
+      Returns the official XML document compliant with OASIS UBL 2.1
+      (`UBL-Invoice-2.1.xsd`) including the X.509 v3 XML-DSig signature embedded in `ext:UBLExtensions`.
+    operationId: getInvoiceXml
+    tags:
+      - Invoices
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: System internal unique UUID of the invoice.
+        schema:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+    responses:
+      '200':
+        description: Signed UBL 2.1 XML file stream.
+        headers:
+          Content-Disposition:
+            schema:
+              type: string
+              example: 'attachment; filename="20123456789-01-F001-00000123.xml"'
+        content:
+          application/xml:
+            schema:
+              type: string
+              description: Fully compliant UBL 2.1 XML with XML-DSig enveloped signature.
+      '400':
+        description: Invoice XML has not yet been generated or is in invalid draft status.
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ErrorResponse.yaml'
+      '404':
+        description: Invoice not found.
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ErrorResponse.yaml'
+
+invoices_id_void:
+  post:
+    summary: Request invoice voiding (Comunicación de Baja)
+    description: >
+      Initiates the formal voiding process according to SUNAT Peruvian regulations
+      (generates the Void Communication XML or Credit Note according to legal deadlines).
+    operationId: voidInvoice
+    tags:
+      - Invoices
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: System internal unique UUID of the invoice.
+        schema:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/VoidInvoiceInput.yaml'
+    responses:
+      '200':
+        description: Voiding request accepted and queued for SUNAT transmission.
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/VoidInvoiceResponse.yaml'
+      '400':
+        description: Invalid request data or invoice is outside the legal time limit established by SUNAT for voiding.
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ErrorResponse.yaml'
+      '404':
+        description: Invoice not found.
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ErrorResponse.yaml'

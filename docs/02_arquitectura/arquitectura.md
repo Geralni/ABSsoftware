@@ -1,25 +1,25 @@
-# DOCUMENTO DE ARQUITECTURA DE SOFTWARE (MVC CON VISIÓN HEXAGONAL)
-**Proyecto:** ABC Software Corp  
-**Módulo:** Fase 1 - Spec-First  
-**Arquitectura:** Monolito Limpio Modular MVC con Puertos y Adaptadores (Hexagonal)  
-**Salida Multiplataforma:** Windows (.MSI) y Android (.APK)  
+# SOFTWARE ARCHITECTURE DOCUMENT (CLEAN MVC WITH HEXAGONAL VISION)
+**Company:** ABC Software Corp  
+**Phase:** Phase 1 - Spec-First  
+**Pattern:** Clean Modular Monolith MVC with Ports & Adapters (Hexagonal Architecture)  
+**Cross-Platform Delivery:** Windows Desktop (.MSI) and Android Mobile (.APK)  
 
 ---
 
-## 1. Visión y Estrategia Arquitectónica
+## 1. Architectural Strategy & Vision (Estrategia y Visión Arquitectónica)
 
-El sistema de facturación electrónica para **ABC Software Corp** inicia como un **Monolito Limpio Modular** fundamentado en el patrón **Modelo-Vista-Controlador (MVC)**, pero estructurado rigurosamente bajo los principios de la **Arquitectura Hexagonal (Puertos y Adaptadores)** y **Clean Architecture**.
+El sistema de facturación electrónica de **ABC Software Corp** se diseña inicialmente como un **Monolito Modular Limpio** basado en **MVC (Modelo-Vista-Controlador)**, pero desacoplado estrictamente con **Arquitectura Hexagonal (Puertos y Adaptadores)** y **Clean Architecture**.
 
-### ¿Por qué esta decisión arquitectónica?
-1. **Simplicidad Operativa Inicial (Time-to-Market):** Un monolito modular elimina la sobrecarga operativa de microservicios (latencia de red, transacciones distribuidas, orquestación de contenedores) en una empresa que viene de un sistema de almacén informal.
-2. **Desacoplamiento Radical (Fronteras Claras):** La lógica del negocio (cálculo de impuestos peruanos, reglas de validación de SUNAT, estados del comprobante) es agnóstica de frameworks web, motores de base de datos y protocolos de transporte.
-3. **Migración Futura sin Reescribir:** Al interactuar exclusivamente a través de **Puertos (Interfaces)**, el núcleo puede evolucionar a microservicios distribuidos sin modificar una sola línea de lógica de dominio.
+### Principios de Diseño:
+1. **Separación de Responsabilidades:** La lógica de cálculo tributario peruano (IGV 18%, ISC, ICBPER) y las reglas de validación de SUNAT se encuentran en el **Núcleo de Dominio (Domain Core)**, completamente aisladas de protocolos de transporte (HTTP REST) y motores de base de datos.
+2. **Capacidad de Evolución:** Al interactuar a través de **Puertos de Entrada (Input Ports)** y **Puertos de Salida (Output Ports)**, cualquier módulo puede migrarse a un microservicio independiente sin modificar las reglas de negocio.
+3. **Contrato Formal Spec-First:** La comunicación entre clientes nativos y el servidor se rige por el contrato OpenAPI 3.0.3 en inglés (`openapi.yaml`).
 
 ---
 
-## 2. Salida Multiplataforma: Clientes Nativos
+## 2. Cross-Platform Delivery: Native Clients (Salida Multiplataforma)
 
-Para atender las necesidades operativas de la empresa (mostrador de venta fijo y atención móvil en almacén), la capa de presentación se desacopla en dos clientes nativos:
+Para resolver las necesidades de atención fija en mostrador y gestión móvil en almacén, la capa de presentación se divide en dos ejecutables nativos:
 
 ```
                   ┌───────────────────────────────┐
@@ -28,165 +28,157 @@ Para atender las necesidades operativas de la empresa (mostrador de venta fijo y
                   └──────────────┬────────────────┘
                                  │
                   ┌──────────────▼────────────────┐
-                  │   Cliente Windows (.MSI)      │
+                  │ Windows Native Client (.MSI)  │
                   │   - C# / .NET / WPF           │
                   │   - Drivers ESC/POS (USB)     │
                   │   - Lector de código de barras│
                   └──────────────┬────────────────┘
                                  │ HTTP/JSON
-                                 │ (OpenAPI 3.0.3)
+                                 │ (OpenAPI 3.0.3: /invoices)
       ┌──────────────────────────┴──────────────────────────┐
       │                                                     │
 ┌─────▼─────────────────────────┐             ┌─────────────▼─────────────────┐
-│ Servidor / Monolito Local POS │             │  Cliente Android (.APK)       │
+│ Servidor / Monolito Local POS │             │ Android Mobile Client (.APK)  │
 │ - Controladores REST          │◄────────────┤  - Kotlin / Jetpack Compose   │
 │ - Dominio Tributario SUNAT    │  HTTP/JSON  │  - Impresoras Móviles BLE/WiFi│
 │ - UBLGenerator (XML UBL 2.1)  │             │  - Cámara / Escaneo de barras │
 └───────────────────────────────┘             └───────────────────────────────┘
 ```
 
-1. **Cliente Windows (.MSI):**
-   * **Tecnología:** C# / .NET / WPF o Tauri / Rust Desktop.
-   * **Empaquetado:** Instalador `.MSI` corporativo con soporte para instalación desatendida.
-   * **Propósito:** Puestos de caja fijos de alta velocidad. Control directo de hardware mediante Win32/USB (gaveta portamonedas eléctrica, impresoras térmicas ESC/POS de 80mm, lectores de barras ópticos).
-2. **Cliente Android (.APK):**
-   * **Tecnología:** Kotlin / Jetpack Compose o Flutter nativo.
-   * **Empaquetado:** Paquete `.APK` firmado para terminales POS portátiles (Sunmi, Clover, PAX o tablets comerciales).
-   * **Propósito:** Facturación móvil en patio de carga, ventas en pasillo de almacén y preventa. Integración con Bluetooth Low Energy (BLE) para impresoras de cinturón.
-
-Ambos clientes consumen de forma unificada la especificación REST definida en el contrato `openapi.yaml`.
+1. **Windows Native Client (.MSI):** Aplicación de escritorio empaquetada en instalador `.MSI` para cajas fijas. Control directo sobre periféricos USB/Win32 (gaveta eléctrica, lector de código de barras e impresora térmica ESC/POS de 80mm).
+2. **Android Mobile Client (.APK):** Aplicación móvil empaquetada en paquete `.APK` firmado para terminales portátiles POS (Sunmi, Clover, PAX o tablets comerciales). Permite facturación en pasillo de almacén con impresoras Bluetooth (BLE).
 
 ---
 
-## 3. El Componente Clave: `UBLGenerator` (El Puente)
+## 3. Key Component: UBLGenerator (The Bridge / El Puente)
 
-El estándar **UBL 2.1 (Universal Business Language)** de OASIS adaptado por SUNAT es extremadamente exigente a nivel sintáctico y de seguridad criptográfica.
+El estándar **OASIS UBL 2.1** adaptado por SUNAT exige un estricto cumplimiento del esquema `UBL-Invoice-2.1.xsd` y firma digital XML-DSig con certificados X.509 v3.
 
-Para evitar que el modelo de dominio se contamine con la complejidad de esquemas XML, se crea un componente especializado denominado **`UBLGenerator`**:
+Para evitar contaminar el modelo de dominio con XML o criptografía, se diseña el componente **`UBLGenerator`**:
 
 ```
-                       UBLGenerator (El Puente)
+                       UBLGenerator (The Bridge)
  ┌────────────────────────────────────────────────────────────────────────┐
  │                                                                        │
- │  DTO / Entidad Factura           Árbol DOM XML conforme                │
- │  (JSON / Domain Model)           a UBL-Invoice-2.1.xsd                 │
+ │  DTO / Domain Entity             OASIS UBL 2.1 DOM Tree                │
+ │  (JSON InvoiceInput)             (UBL-Invoice-2.1.xsd)                 │
  │  ┌─────────────────────────┐     ┌──────────────────────────────────┐  │
  │  │ - ublVersionId: '2.1'   │     │ <Invoice xmlns="urn:oasis...">   │  │
  │  │ - customizationId: '2.0'│     │   <cbc:UBLVersionID>2.1</...>    │  │
- │  │ - rucEmisor: 20123456789│ ──> │   <cbc:CustomizationID>2.0</...> │  │
- │  │ - serie: F001           │     │   <cbc:ID>F001-00000123</cbc:ID> │  │
- │  │ - correlativo: 123      │     │   <cac:TaxTotal>...</cac:TaxTot> │  │
- │  │ - afectacionIgv: Cat. 07│     │ </Invoice>                       │  │
- │  │ - sistemaIsc: Cat. 08   │     └────────────────┬─────────────────┘  │
- │  │ - ubigeo: '150131'      │                      │                    │
- │  └─────────────────────────┘             Canonicalización (C14N)       │
+ │  │ - issuerRuc: 20123456789│ ──> │   <cbc:CustomizationID>2.0</...> │  │
+ │  │ - series: 'F001'        │     │   <cbc:ID>F001-00000123</cbc:ID> │  │
+ │  │ - sequenceNumber: 123   │     │   <cac:TaxTotal>...</cac:TaxTot> │  │
+ │  │ - igvTaxExemptionCode:10│     │ </Invoice>                       │  │
+ │  │ - iscCalcSystemCode: 01 │     └────────────────┬─────────────────┘  │
+ │  │ - issuerUbigeo: '150131'│                      │                    │
+ │  └─────────────────────────┘             Canonicalization (C14N)       │
  │                                                   │                    │
- │                                          Firma Digital XML-DSig        │
- │                                          (Certificado X.509 v3)        │
+ │                                          XML-DSig Digital Signature    │
+ │                                          (X.509 v3 Certificate)        │
  │                                                   │                    │
  │                                          ┌────────▼─────────────────┐  │
- │                                          │ Inyección en             │  │
+ │                                          │ Injected into            │  │
  │                                          │ ext:UBLExtensions        │  │
  │                                          └────────┬─────────────────┘  │
  │                                                   │                    │
  │                                     ┌─────────────┴────────────┐       │
  │                                     ▼                          ▼       │
- │                             XML Firmado Final           DigestValue    │
- │                             (2012...-01-F001.xml)     (Hash para QR)   │
+ │                             Signed XML Document         DigestValue    │
+ │                             (2012...-01-F001.xml)     (Hash for QR)    │
  └────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Subcomponentes de `UBLGenerator`:
-* **`XMLMapper`:** Mapea las estructuras internas de la factura al esquema formal OASIS UBL 2.1 (`UBL-Invoice-2.1.xsd`), estructurando los nodos `cac:AccountingSupplierParty`, `cac:AccountingCustomerParty`, `cac:TaxTotal`, `cac:LegalMonetaryTotal` y las líneas `cac:InvoiceLine`.
-* **`XMLDigitalSigner`:** Implementa la especificación XML-DSig (`enveloped`) bajo el estándar W3C. Lee el certificado digital tributario X.509 v3 (PKCS#12 `.pfx` o `.p12`), calcula el hash canónico del documento y genera el bloque criptográfico `ds:SignatureValue` y `ds:KeyInfo`.
-* **`DigestValueExtractor`:** Extrae el valor resumen SHA-256 generado por la firma digital (`ds:DigestValue`), el cual es obligatorio para imprimir el código QR y generar la representación impresa en PDF.
-* **`XSDValidator`:** Validador sintáctico estricto en memoria que comprueba el documento contra `UBL-Invoice-2.1.xsd` antes de autorizar el envío a SUNAT, previniendo rechazos en el OSE.
+* **`XMLMapper`:** Mapea el DTO `InvoiceInput` a la jerarquía formal de nodos de `UBL-Invoice-2.1.xsd`, concatenando `{series}-{sequenceNumber:08d}` dentro de `<cbc:ID>` y estructurando los bloques `cac:AccountingSupplierParty`, `cac:AccountingCustomerParty`, `cac:TaxTotal` y `cac:InvoiceLine`.
+* **`XMLDigitalSigner`:** Implementa firma XML-DSig (`enveloped`) con el certificado X.509 v3 de la empresa, inyectando el nodo `ds:Signature` dentro de `ext:UBLExtensions`.
+* **`DigestValueExtractor`:** Extrae el valor Hash SHA-256 (`ds:DigestValue`) requerido para el código QR y la representación PDF.
+* **`XSDValidator`:** Validador sintáctico en memoria que verifica la conformidad estricta contra `UBL-Invoice-2.1.xsd`.
 
 ---
 
-## 4. Diagrama Integral de Arquitectura (Mermaid)
+## 4. Comprehensive Architecture Diagram (Mermaid)
 
 ```mermaid
 flowchart TB
-    %% CLIENTES MULTIPLATAFORMA
-    subgraph Multiplataforma["CAPA CLIENTES MULTIPLATAFORMA"]
-        WinMSI["🖥️ Cliente Nativo Windows (.MSI)<br/>WPF / .NET / C# Desktop<br/>(Impresoras ESC/POS USB, Gavetas, Lectores)"]
-        AndroidAPK["📱 Cliente Nativo Android (.APK)<br/>Kotlin / Jetpack Mobile POS<br/>(Tablets de Almacén, Impresoras Bluetooth BLE)"]
+    %% CROSS-PLATFORM CLIENTS
+    subgraph Multiplatform["CROSS-PLATFORM CLIENT LAYER"]
+        WinMSI["🖥️ Windows Native Client (.MSI)<br/>WPF / .NET Desktop POS<br/>(USB ESC/POS Printers, Cash Drawers, Scanners)"]
+        AndroidAPK["📱 Android Native Client (.APK)<br/>Kotlin / Jetpack Mobile POS<br/>(Warehouse Tablets, BLE Portable Printers)"]
     end
 
-    %% ADAPTADORES DE ENTRADA (DRIVING ADAPTERS / REST)
-    subgraph DrivingAdapters["ADAPTADORES DE ENTRADA (Driving Adapters / MVC Controllers)"]
-        CtrlFactura["🎮 FacturaRestController<br/>POST /api/v1/facturas<br/>GET /api/v1/facturas/{id}<br/>GET /api/v1/facturas/{id}/xml"]
-        CtrlAnular["🎮 AnulacionRestController<br/>POST /api/v1/facturas/{id}/anular"]
-        CtrlMigrar["🎮 MigracionRestController<br/>POST /api/v1/migracion/legado"]
+    %% DRIVING ADAPTERS (REST MVC CONTROLLERS)
+    subgraph DrivingAdapters["DRIVING ADAPTERS (REST MVC Controllers)"]
+        CtrlInvoice["🎮 InvoiceRestController<br/>POST /api/v1/invoices<br/>GET /api/v1/invoices/{id}<br/>GET /api/v1/invoices/{id}/xml"]
+        CtrlVoid["🎮 VoidInvoiceRestController<br/>POST /api/v1/invoices/{id}/void"]
+        CtrlMigration["🎮 MigrationRestController<br/>POST /api/v1/migration/legacy"]
     end
 
-    WinMSI -->|HTTP / JSON (OpenAPI)| CtrlFactura
-    WinMSI -->|HTTP / JSON (OpenAPI)| CtrlAnular
-    WinMSI -->|HTTP / JSON (OpenAPI)| CtrlMigrar
+    WinMSI -->|HTTP / JSON (OpenAPI)| CtrlInvoice
+    WinMSI -->|HTTP / JSON (OpenAPI)| CtrlVoid
+    WinMSI -->|HTTP / JSON (OpenAPI)| CtrlMigration
     
-    AndroidAPK -->|HTTP / JSON (OpenAPI)| CtrlFactura
-    AndroidAPK -->|HTTP / JSON (OpenAPI)| CtrlAnular
+    AndroidAPK -->|HTTP / JSON (OpenAPI)| CtrlInvoice
+    AndroidAPK -->|HTTP / JSON (OpenAPI)| CtrlVoid
 
-    %% PUERTOS DE ENTRADA (INPUT PORTS)
-    subgraph InputPorts["PUERTOS DE ENTRADA (Input Ports / Use Case Interfaces)"]
-        PortEmitir["📥 InputPort: EmitirFacturaUseCase"]
-        PortAnular["📥 InputPort: AnularFacturaUseCase"]
-        PortMigrar["📥 InputPort: MigrarLegadoUseCase"]
+    %% INPUT PORTS (USE CASE INTERFACES)
+    subgraph InputPorts["INPUT PORTS (Application Use Case Interfaces)"]
+        PortIssue["📥 InputPort: IssueInvoiceUseCase"]
+        PortVoid["📥 InputPort: VoidInvoiceUseCase"]
+        PortMigrate["📥 InputPort: MigrateLegacyUseCase"]
     end
 
-    CtrlFactura --> PortEmitir
-    CtrlAnular --> PortAnular
-    CtrlMigrar --> PortMigrar
+    CtrlInvoice --> PortIssue
+    CtrlVoid --> PortVoid
+    CtrlMigration --> PortMigrate
 
-    %% CAPA DE APLICACIÓN (APPLICATION INTERACTORS)
-    subgraph ApplicationServices["CAPA DE APLICACIÓN (Interactors / Application Services)"]
-        SvcEmitir["⚙️ EmitirFacturaService<br/>(Orquestador de emisión y validación)"]
-        SvcAnular["⚙️ AnularFacturaService<br/>(Orquestador de bajas tributarias)"]
-        SvcMigrar["⚙️ MigracionLegadoService<br/>(Saneamiento de catálogo y clientes)"]
+    %% APPLICATION LAYER (INTERACTORS / SERVICES)
+    subgraph ApplicationServices["APPLICATION LAYER (Use Case Interactors)"]
+        SvcIssue["⚙️ IssueInvoiceService<br/>(Invoice creation & issuance orchestration)"]
+        SvcVoid["⚙️ VoidInvoiceService<br/>(Voiding communication & credit note orchestration)"]
+        SvcMigrate["⚙️ LegacyMigrationService<br/>(Data sanitization & batch ingestion)"]
     end
 
-    PortEmitir --> SvcEmitir
-    PortAnular --> SvcAnular
-    PortMigrar --> SvcMigrar
+    PortIssue --> SvcIssue
+    PortVoid --> SvcVoid
+    PortMigrate --> SvcMigrate
 
-    %% CAPA DE DOMINIO (DOMAIN CORE)
-    subgraph DomainCore["CAPA DE DOMINIO (Entidades, Value Objects y Servicios de Dominio)"]
-        EntFactura["📦 Entidad: Factura"]
-        EntDetalle["📦 Entidad: DetalleFactura"]
-        VOCliente["💎 Value Object: Cliente (RUC)"]
-        VOTributos["💎 Value Object: DesgloseTributario"]
+    %% DOMAIN CORE (BUSINESS ENTITIES & SERVICES)
+    subgraph DomainCore["DOMAIN CORE (Entities, Value Objects & Domain Services)"]
+        EntInvoice["📦 Entity: Invoice"]
+        EntItem["📦 Entity: InvoiceItem"]
+        VOCustomer["💎 Value Object: Customer (RUC)"]
+        VOTaxes["💎 Value Object: TaxBreakdown"]
         
-        CalcTributos["🧠 Domain Service: CalculadorTributosPeruanos<br/>- Base Imponible Gravada (Cat. 07: 10)<br/>- IGV 18% (Cat. 05: 1000 VAT)<br/>- ISC (Cat. 08 y Cat. 05: 2000 EXC)<br/>- ICBPER (Ley 30884: 7152 OTH)"]
-        ValidadorNormas["🧠 Domain Service: ValidadorNormativoSUNAT<br/>- Algoritmo Módulo 11 (RUC)<br/>- Estructura Serie F### / B###<br/>- Plazo máximo 3 días hábiles"]
+        CalcTaxes["🧠 Domain Service: PeruvianTaxCalculator<br/>- Taxable Base (Catalog 07: 10)<br/>- IGV 18% (Catalog 05: 1000 VAT)<br/>- ISC Excise (Catalog 08 & 05: 2000 EXC)<br/>- ICBPER Plastic Bag (Law 30884: 7152 OTH)"]
+        ValSunat["🧠 Domain Service: SunatRegulatoryValidator<br/>- Modulo 11 Algorithm (RUC)<br/>- Series F### / B### Format<br/>- Maximum 3 Business Days Deadline"]
     end
 
-    SvcEmitir --> EntFactura
-    SvcEmitir --> CalcTributos
-    SvcEmitir --> ValidadorNormas
-    SvcMigrar --> ValidadorNormas
+    SvcIssue --> EntInvoice
+    SvcIssue --> CalcTaxes
+    SvcIssue --> ValSunat
+    SvcMigrate --> ValSunat
 
-    %% PUERTOS DE SALIDA (OUTPUT PORTS)
-    subgraph OutputPorts["PUERTOS DE SALIDA (Output Ports / SPI Interfaces)"]
+    %% OUTPUT PORTS (SPI INTERFACES)
+    subgraph OutputPorts["OUTPUT PORTS (Secondary SPI Interfaces)"]
         PortUBL["🔌 OutputPort: UBLGeneratorPort"]
-        PortRepo["🔌 OutputPort: FacturaRepositoryPort"]
+        PortRepo["🔌 OutputPort: InvoiceRepositoryPort"]
         PortSunat["🔌 OutputPort: SunatClientPort"]
         PortStorage["🔌 OutputPort: StoragePort"]
     end
 
-    SvcEmitir --> PortUBL
-    SvcEmitir --> PortRepo
-    SvcEmitir --> PortSunat
-    SvcEmitir --> PortStorage
-    SvcMigrar --> PortRepo
+    SvcIssue --> PortUBL
+    SvcIssue --> PortRepo
+    SvcIssue --> PortSunat
+    SvcIssue --> PortStorage
+    SvcMigrate --> PortRepo
 
-    %% COMPONENTE CLAVE: EL PUENTE (UBLGenerator)
-    subgraph BridgeComponent["COMPONENTE CLAVE: EL PUENTE (UBLGenerator Adapter)"]
-        subgraph UBLGeneratorAdapter["UBLGenerator (Transformador y Firmador)"]
-            MapperUBL["🔄 XMLMapper<br/>Transforma Factura a árbol OASIS UBL-Invoice-2.1.xsd"]
-            SignerX509["🔏 XMLDigitalSigner<br/>Firma enveloped XML-DSig con Certificado X.509 v3"]
-            ExtractorHash["🔑 DigestValueExtractor<br/>Calcula y extrae Hash SHA-256 para Código QR"]
-            ValidatorXSD["🛡️ XSDValidator<br/>Valida el XML contra esquemas oficiales OASIS"]
+    %% KEY COMPONENT: THE BRIDGE (UBLGenerator)
+    subgraph BridgeComponent["KEY COMPONENT: THE BRIDGE (UBLGenerator Adapter)"]
+        subgraph UBLGeneratorAdapter["UBLGenerator (Transformer & Signer)"]
+            MapperUBL["🔄 XMLMapper<br/>Transforms InvoiceInput to OASIS UBL-Invoice-2.1.xsd with cbc:ID"]
+            SignerX509["🔏 XMLDigitalSigner<br/>Enveloped XML-DSig signature with X.509 v3 Digital Certificate"]
+            ExtractorHash["🔑 DigestValueExtractor<br/>Calculates SHA-256 DigestValue Hash for QR Code"]
+            ValidatorXSD["🛡️ XSDValidator<br/>Validates document against OASIS UBL 2.1 XSD schemas"]
         end
     end
 
@@ -195,12 +187,12 @@ flowchart TB
     SignerX509 --> ExtractorHash
     ExtractorHash --> ValidatorXSD
 
-    %% ADAPTADORES DE SALIDA (DRIVEN ADAPTERS)
-    subgraph DrivenAdapters["ADAPTADORES DE SALIDA (Driven Adapters / Infraestructura)"]
-        RepoPostgres["🗄️ PostgresSqlFacturaRepository<br/>(Base de datos principal transaccional)"]
-        RepoSqlite["🗄️ SqliteLocalRepository<br/>(Caché local offline para Windows y Android)"]
-        ClientSunat["☁️ SunatOseSoapClientAdapter<br/>(Web Service BillService SOAP / MTOM / WS-Security)"]
-        StorageXml["📁 FileSystem / S3StorageAdapter<br/>(Almacenamiento de XMLs firmados, CDRs y PDFs)"]
+    %% DRIVEN ADAPTERS (INFRASTRUCTURE IMPLEMENTATIONS)
+    subgraph DrivenAdapters["DRIVEN ADAPTERS (Infrastructure Layer)"]
+        RepoPostgres["🗄️ PostgresSqlInvoiceRepository<br/>(ACID Relational Main Database)"]
+        RepoSqlite["🗄️ SqliteLocalRepository<br/>(Local Offline Cache for Windows & Android)"]
+        ClientSunat["☁️ SunatOseSoapClientAdapter<br/>(SOAP BillService MTOM / WS-Security Client)"]
+        StorageXml["📁 FileSystemStorage / S3StorageAdapter<br/>(Storage for Signed XMLs, CDRs and PDFs)"]
     end
 
     PortRepo --> RepoPostgres
@@ -208,6 +200,6 @@ flowchart TB
     PortSunat --> ClientSunat
     PortStorage --> StorageXml
 
-    %% COMUNICACIÓN EXTERNA
-    ClientSunat <==>|SOAP XML-DSig ZIP / CDR Response| SunatOSE["🏛️ SUNAT / OSE (Servidores Oficiales)"]
+    %% EXTERNAL COMMUNICATION
+    ClientSunat <==>|SOAP XML-DSig ZIP / CDR Response| SunatOSE["🏛️ SUNAT / OSE (Official Tax Authority Servers)"]
 ```

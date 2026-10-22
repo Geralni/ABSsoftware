@@ -1,142 +1,143 @@
-# DOCUMENTO DE CASOS DE USO - SISTEMA DE FACTURACIÓN ELECTRÓNICA
-**Proyecto:** ABC Software Corp  
-**Módulo:** Fase 1 - Spec-First  
-**Normativa:** SUNAT / OASIS UBL 2.1  
+# USE CASE SPECIFICATION - ELECTRONIC INVOICING SYSTEM
+**Company:** ABC Software Corp  
+**Phase:** Phase 1 - Spec-First  
+**Standard:** OASIS UBL 2.1 (`UBL-Invoice-2.1.xsd`)  
+**Regulatory Framework:** SUNAT (Perú)  
 
 ---
 
-## 1. Identificación y Descripción de Actores
+## 1. Actor Identification and Description
 
-* **Cajero (Operador de Punto de Venta):**  
-  Usuario operativo que interactúa desde las terminales de caja locales (tanto en la aplicación de escritorio Windows `.MSI` como en dispositivos móviles Android `.APK`). Es responsable de seleccionar productos, registrar el RUC del cliente, aplicar descuentos permitidos, procesar el pago e imprimir la representación impresa (ticket de 80mm).
-* **Administrador de Tienda / Finanzas:**  
-  Usuario con privilegios gerenciales y contables. Gestiona certificados digitales X.509, configura series correlativas (`F001`, `B001`), autoriza y ejecuta solicitudes de anulación de comprobantes (comunicación de baja o notas de crédito) y es el responsable de ejecutar la ingesta y saneamiento de datos históricos del almacén informal.
-* **SUNAT / OSE (Operador de Servicios Electrónicos):**  
-  Actor externo gubernamental/regulatorio. Expone servicios web (SOAP / MTOM) para la recepción de paquetes comprimidos `.ZIP` conteniendo el XML UBL 2.1 firmado. Valida las reglas de negocio tributarias y emite la Constancia de Recepción (CDR) con el resultado (`ACEPTADO`, `RECHAZADO`, `OBSERVADO`).
-* **Sistema Legado de Almacén:**  
-  Sistema preexistente no formalizado que contiene la base histórica de clientes empíricos, inventario de artículos y registros de ventas anteriores necesarios para la migración.
+* **Cashier (Operador de Punto de Venta):**  
+  Usuario operativo que interactúa desde las terminales de venta (aplicación de escritorio Windows `.MSI` o tablet Android `.APK`). Registra los productos del catálogo, captura el número de documento de identidad del cliente (`identityDocumentNumber`), calcula tributos en tiempo real y emite los comprobantes electrónicos imprimiendo la representación gráfica (ticket de 80mm).
+* **Store Administrator / Finance (Administrador de Tienda y Finanzas):**  
+  Usuario con privilegios gerenciales y contables. Gestiona certificados digitales X.509 v3, configura series correlativas (`series`, ej. `F001`, `B001`), autoriza y procesa solicitudes de anulación (`VoidInvoiceInput` mediante comunicación de baja) y ejecuta la migración masiva de datos históricos desde el almacén informal (`LegacyMigrationInput`).
+* **SUNAT / OSE (Peruvian Tax Authority & Electronic Service Operator):**  
+  Actor externo gubernamental y regulador. Expone servicios web SOAP con seguridad WS-Security para la recepción de paquetes comprimidos `.ZIP` conteniendo el archivo XML UBL 2.1 firmado. Valida la conformidad normativa y retorna la Constancia de Recepción (CDR) con el estado oficial (`ACEPTADO`, `RECHAZADO`, `OBSERVADO`).
+* **Legacy System (Informal Warehouse System):**  
+  Sistema preexistente no formalizado que provee la información histórica de clientes empíricos, inventario de artículos y registros de ventas anteriores para su ingesta y saneamiento.
 
 ---
 
-## 2. Diagrama de Casos de Uso (Mermaid)
+## 2. Use Case Diagram (Mermaid)
 
 ```mermaid
 flowchart TD
-    %% Actores
-    subgraph Actores
-        Cajero["👤 Cajero (POS Windows MSI / Android APK)"]
-        Admin["👤 Administrador / Finanzas"]
-        Sunat["🏢 SUNAT / OSE (Servicio Externo)"]
-        Legado["💾 Sistema Legado (Almacén Informal)"]
+    %% Actors
+    subgraph Actors["System Actors"]
+        Cashier["👤 Cashier (Windows POS MSI / Android APK)"]
+        Admin["👤 Store Administrator / Finance"]
+        Sunat["🏢 SUNAT / OSE (Tax Authority Service)"]
+        Legacy["💾 Legacy Warehouse System (DBF / Excel)"]
     end
 
-    %% Casos de Uso
-    subgraph Sistema_ABC_Software["Sistema de Facturación Electrónica ABC Software"]
-        CU01(["CU-01: Emitir Factura Electrónica"])
-        CU02(["CU-02: Emitir Boleta de Venta Electrónica"])
-        CU03(["CU-03: Generar XML UBL 2.1 y Firmar Digitalmente"])
-        CU04(["CU-04: Anular Comprobante de Pago"])
-        CU05(["CU-05: Migrar Datos Históricos del Legado"])
-        CU06(["CU-06: Enviar Comprobante y Procesar CDR SUNAT"])
-        CU07(["CU-07: Consultar Factura y Descargar XML / PDF"])
+    %% Use Cases
+    subgraph ABC_Invoicing_System["ABC Software Corp - Invoicing System"]
+        UC01(["UC-01: Issue Electronic Invoice (Factura)"])
+        UC02(["UC-02: Issue Electronic Sales Receipt (Boleta)"])
+        UC03(["UC-03: Generate UBL 2.1 XML and Sign Digitally"])
+        UC04(["UC-04: Void Electronic Invoice (Baja)"])
+        UC05(["UC-05: Ingest & Sanitize Legacy Historical Data"])
+        UC06(["UC-06: Transmit Batch to SUNAT and Process CDR"])
+        UC07(["UC-07: Query Invoice & Download Signed XML / PDF"])
     end
 
-    %% Interacciones
-    Cajero --> CU01
-    Cajero --> CU02
-    Cajero --> CU07
+    %% Actor Interactions
+    Cashier --> UC01
+    Cashier --> UC02
+    Cashier --> UC07
     
-    Admin --> CU04
-    Admin --> CU05
-    Admin --> CU07
+    Admin --> UC04
+    Admin --> UC05
+    Admin --> UC07
 
-    Legado -.->|Datos crudos| CU05
+    Legacy -.->|Raw data batch| UC05
 
-    %% Dependencias Funcionales
-    CU01 -.->|<<include>>| CU03
-    CU02 -.->|<<include>>| CU03
-    CU01 -.->|<<include>>| CU06
-    CU04 -.->|<<include>>| CU03
-    CU04 -.->|<<include>>| CU06
+    %% Functional Inclusions
+    UC01 -.->|<<include>>| UC03
+    UC02 -.->|<<include>>| UC03
+    UC01 -.->|<<include>>| UC06
+    UC04 -.->|<<include>>| UC03
+    UC04 -.->|<<include>>| UC06
 
-    CU06 <-->|Web Service SOAP / WS-Security| Sunat
+    UC06 <-->|SOAP / WS-Security BillService| Sunat
 ```
 
 ---
 
-## 3. Especificación Detallada de Casos de Uso Críticos
+## 3. Detailed Specification of Critical Use Cases
 
-### CU-03: Generación del XML UBL 2.1 a partir de los datos de la factura
-* **Identificador:** `CU-03`
-* **Tipo:** Caso de uso de Dominio / Transformación Tecnológica
-* **Invocador:** `CU-01` (Emitir Factura), `CU-02` (Emitir Boleta), `CU-04` (Anular Comprobante)
-* **Precondición:** 
-  1. Comprobante registrado en la base de datos con serie y correlativo reservado atómicamente (ej. `F001-00000123`).
-  2. Datos del emisor y receptor validados fiscalmente (RUC válido con checksum de Módulo 11).
-  3. Certificado digital tributario X.509 v3 disponible y cargado en el almacén de seguridad.
-* **Flujo Principal:**
-  1. El caso de uso recupera el modelo de dominio `Factura` con los parámetros peruanizados: `rucEmisor`, `ubigeoEmisor`, `tipoDocumentoIdentidad`, `ubigeo` del cliente y el desglose de bases imponibles y tributos (IGV, ISC, ICBPER).
-  2. Instancia el componente `UBLGenerator`.
-  3. Se inicializa el documento XML con el namespace principal OASIS `urn:oasis:names:specification:ubl:schema:xsd:Invoice-2` y prefijos requeridos (`cac`, `cbc`, `ext`, `ds`).
+### UC-03: Generate UBL 2.1 XML Document and Digital Signature
+* **Use Case ID:** `UC-03`
+* **Type:** Core Domain / Technological Transformation
+* **Triggered by:** `UC-01` (Issue Electronic Invoice), `UC-02` (Issue Electronic Sales Receipt), `UC-04` (Void Electronic Invoice)
+* **Preconditions (Precondiciones):** 
+  1. Comprobante registrado en base de datos con serie (`series`) y correlativo (`sequenceNumber`) atómicamente asignados (ej. `F001` y `123`).
+  2. RUC del emisor (`issuerRuc`) y adquirente (`identityDocumentNumber`) validados con el algoritmo Módulo 11 de SUNAT.
+  3. Certificado digital tributario X.509 v3 disponible en almacén seguro.
+* **Main Success Scenario (Flujo Principal):**
+  1. El caso de uso recupera el modelo de dominio `InvoiceInput` con los parámetros técnicos de SUNAT: `issuerRuc`, `issuerUbigeo`, `identityDocumentType` (Catálogo 06 = '6'), `ubigeo` del cliente y el desglose de bases imponibles y tributos (IGV, ISC, ICBPER).
+  2. Instancia el componente especializado `UBLGenerator`.
+  3. Inicializa el documento XML bajo el namespace raíz OASIS `urn:oasis:names:specification:ubl:schema:xsd:Invoice-2` y prefijos requeridos (`cac`, `cbc`, `ext`, `ds`).
   4. Mapea la cabecera normativa estricta de SUNAT Perú:
-     * `<cbc:UBLVersionID>`: Valor fijo mandatorio **`2.1`**.
-     * `<cbc:CustomizationID>`: Valor fijo mandatorio **`2.0`**.
-     * `<cbc:ID>`: Identificador legal determinístico resultante de concatenar `{serie}-{correlativo:08d}` (ej. **`F001-00000123`**). Se prohíbe el uso de UUIDs.
-     * `<cbc:IssueDate>` (YYYY-MM-DD), `<cbc:IssueTime>` (HH:MM:SS), `<cbc:InvoiceTypeCode listID="0101">01</cbc:InvoiceTypeCode>` (Catálogo 01 y 51) y `<cbc:DocumentCurrencyCode>` (`PEN` o `USD` según Catálogo 02).
-  5. Mapea `cac:AccountingSupplierParty` con el `rucEmisor` (`@schemeID="6"`), razón social y `ubigeoEmisor`. Mapea `cac:AccountingCustomerParty` con el `tipoDocumentoIdentidad` (`@schemeID="6"`), número de RUC del cliente, razón social y `ubigeo`.
-  6. Construye `cac:TaxTotal` con subtotales independientes para:
+     * `<cbc:UBLVersionID>`: **`2.1`** (valor fijo mandatorio).
+     * `<cbc:CustomizationID>`: **`2.0`** (valor fijo mandatorio).
+     * `<cbc:ID>`: Identificador legal determinístico resultante de concatenar `{series}-{sequenceNumber:08d}` $\rightarrow$ **`F001-00000123`** (se prohíbe el uso de UUIDs aleatorios).
+     * `<cbc:IssueDate>` (`issueDate`), `<cbc:IssueTime>` (`issueTime`), `<cbc:InvoiceTypeCode listID="0101">01</cbc:InvoiceTypeCode>` (Catálogo 01 y 51) y `<cbc:DocumentCurrencyCode>` (`currencyCode`, ej. `PEN` según Catálogo 02).
+  5. Mapea `cac:AccountingSupplierParty` con `issuerRuc` (`@schemeID="6"`), razón social y `issuerUbigeo`. Mapea `cac:AccountingCustomerParty` con `identityDocumentType` (`@schemeID="6"`), número de RUC del adquirente, razón social y `ubigeo`.
+  6. Construye los bloques globales en `cac:TaxTotal` con subtotales independientes para:
      * IGV (código `1000`, categoría `VAT`).
      * ISC (código `2000`, categoría `EXC`, si aplica).
-     * ICBPER (código `7152`, categoría `OTH`, impuesto a las bolsas de plástico según Ley N° 30884).
-  7. Construye `cac:LegalMonetaryTotal` con `LineExtensionAmount` (base gravada), `TaxInclusiveAmount` (total con tributos) y `PayableAmount` (importe total a cobrar).
-  8. Itera cada ítem en nodos `cac:InvoiceLine`, vinculando `InvoicedQuantity` (Catálogo 03), `Price` (valor unitario), `PricingReference` (precio unitario con IGV según Catálogo 16 = '01'), `codigoAfectacionIgv` (**Catálogo 07 de SUNAT**, ej. `10` Gravado Oneroso) y `codigoSistemaIsc` (**Catálogo 08 de SUNAT**, ej. `01` Al Valor).
-  9. Canonicaliza el XML (C14N) e inyecta la Firma Digital XML-DSig en `/Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent`.
-  10. Extrae el `DigestValue` (Hash SHA-256 Base64) para el código QR y la representación PDF.
-  11. Valida el XML generado contra el archivo de validación sintáctica `UBL-Invoice-2.1.xsd`.
-* **Postcondición:**
-  * Archivo XML físico generado con nomenclatura oficial SUNAT: `20123456789-01-F001-00000123.xml`.
-  * Hash SHA-256 persistido en base de datos.
+     * ICBPER (código `7152`, categoría `OTH`, bolsas de plástico Ley N° 30884).
+  7. Construye `cac:LegalMonetaryTotal` con `LineExtensionAmount` (base gravada), `TaxInclusiveAmount` (precio total con impuestos) y `PayableAmount` (monto total a pagar por el adquirente).
+  8. Itera cada ítem en nodos `cac:InvoiceLine`, vinculando `InvoicedQuantity` (`unitOfMeasure` según Catálogo 03), `Price` (`unitValue`), `PricingReference` (`unitPriceWithIgv` según Catálogo 16 = '01'), afectación al IGV (`igvTaxExemptionCode` según **Catálogo 07 de SUNAT**, ej. `10` Gravado Oneroso) y sistema de cálculo del ISC (`iscCalculationSystemCode` según **Catálogo 08 de SUNAT**, ej. `01` Al Valor).
+  9. Canonicaliza el árbol XML (C14N) e inyecta la firma digital XML-DSig (`enveloped`) en `/Invoice/ext:UBLExtensions/ext:UBLExtension/ext:ExtensionContent`.
+  10. Extrae el `DigestValue` (resumen criptográfico Hash SHA-256 en Base64) para la generación del código QR y la representación en PDF.
+  11. Valida el XML generado contra el archivo XSD oficial `UBL-Invoice-2.1.xsd`.
+* **Postconditions (Postcondiciones):**
+  * Archivo XML generado con la nomenclatura oficial de SUNAT: `20123456789-01-F001-00000123.xml`.
+  * Hash SHA-256 (`digestValue`) persistido para emisión de comprobante y código QR.
   * Factura actualizada al estado `XML_GENERADO_FIRMADO`.
 
 ---
 
-### CU-01: Emitir Factura Electrónica
-* **Identificador:** `CU-01`
-* **Actor Principal:** Cajero (Terminal POS Windows o Android)
-* **Precondición:** 
-  1. Sesión de caja abierta en terminal POS.
-  2. Adquirente cuenta con RUC válido (Catálogo 06 = `6`).
-* **Flujo Principal:**
-  1. El cajero ingresa el RUC del cliente; el sistema autocompleta la razón social y dirección fiscal desde el caché local o servicio de consulta.
-  2. El cajero agrega los productos y define cantidades y descuentos.
-  3. El motor de dominio calcula en tiempo real los importes gravados, exonerados, IGV (18%), ISC e ICBPER.
-  4. Se define la modalidad de pago: "Contado" o "Crédito" (con desglose de cuotas y fechas de vencimiento).
-  5. El cajero confirma la emisión. El sistema bloquea y reserva el siguiente número correlativo de la serie `F001`.
-  6. Persiste la entidad `Factura` en la base de datos relacional.
-  7. Ejecuta de forma automática el caso de uso `CU-03` para generar y firmar el XML UBL 2.1.
-  8. Encola y transmite el paquete comprimido `.ZIP` hacia el Web Service de SUNAT/OSE (`CU-06`).
-  9. Recibe la Constancia de Recepción (CDR), valida que el código sea `0` y actualiza la factura a `ACEPTADA`.
-  10. Emite el ticket de venta con código QR y Hash del comprobante.
-* **Postcondición:** Factura emitida formalmente ante SUNAT con CDR almacenado y stock de almacén rebajado.
+### UC-01: Issue Electronic Invoice (Emitir Factura Electrónica)
+* **Use Case ID:** `UC-01`
+* **Primary Actor:** Cashier (Terminal POS Windows o Android)
+* **Preconditions (Precondiciones):** 
+  1. Sesión de caja abierta en la terminal POS con serie `series` habilitada (`F001`).
+  2. Adquirente identificado con RUC válido (`identityDocumentType` = `'6'`).
+* **Main Success Scenario (Flujo Principal):**
+  1. El cajero ingresa el RUC del cliente (`identityDocumentNumber`); el sistema consulta el padrón y autocompleta razón social (`legalName`), dirección fiscal (`fiscalAddress`) y `ubigeo`.
+  2. El cajero agrega productos del catálogo, especificando cantidades y descuentos comerciales.
+  3. El motor de dominio (`CalculadorTributosPeruanos`) calcula en tiempo real las bases gravadas, exoneradas, IGV (18%), ISC e ICBPER.
+  4. Se define la condición de pago: "Contado" o "Credito" (con desglose de cuotas y fechas de vencimiento en `paymentTerms`).
+  5. El cajero confirma la emisión. El sistema reserva atómicamente el siguiente número correlativo (`sequenceNumber`).
+  6. Se persiste la factura en base de datos.
+  7. Invoca automáticamente a `UC-03` para la generación y firmado digital del XML UBL 2.1.
+  8. Se comprime en formato `.ZIP` y se envía al Web Service de SUNAT/OSE (`UC-06`).
+  9. Recibe la Constancia de Recepción (CDR), valida que el código de respuesta sea `0` (Aceptado) y actualiza el estado a `ACEPTADA`.
+  10. Emite el ticket de venta de 80mm con código QR y Hash del comprobante.
+* **Postconditions (Postcondiciones):** Factura emitida formalmente ante SUNAT con CDR almacenado y stock de almacén actualizado.
 
 ---
 
-### CU-05: Migrar Datos Históricos del Legado
-* **Identificador:** `CU-05`
-* **Actor Principal:** Administrador de Tienda / Finanzas
-* **Precondición:** Lote de migración extraído del sistema informal de almacén disponible en formato estructurado.
-* **Flujo Principal:**
-  1. El Administrador envía el payload de datos históricos mediante el endpoint `/api/v1/migracion/legado`.
-  2. El sistema abre una sesión de migración transaccional con aislamiento.
+### UC-05: Ingest & Sanitize Legacy Historical Data (Migración de Datos del Legado)
+* **Use Case ID:** `UC-05`
+* **Primary Actor:** Store Administrator / Finance
+* **Preconditions (Precondiciones):** Lote de migración extraído del sistema informal de almacén estructurado según el schema `LegacyMigrationInput`.
+* **Main Success Scenario (Flujo Principal):**
+  1. El Administrador envía el lote histórico mediante el endpoint `POST /api/v1/migration/legacy`.
+  2. El sistema inicia una transacción de migración con aislamiento.
   3. **Saneamiento de Clientes:**
-     * Aplica el algoritmo matemático **Módulo 11** a cada número de documento.
-     * Convierte identificadores antiguos al código formal de Catálogo 06 (`6` para RUC, `1` para DNI).
-     * Corrige caracteres ilegales o saltos de línea en razones sociales.
+     * Aplica el algoritmo matemático **Módulo 11** a cada número de documento (`identityDocumentNumber`).
+     * Homologa tipos antiguos al código formal del Catálogo 06 (`6` para RUC, `1` para DNI).
+     * Corrige caracteres ilegales o saltos de línea en razones sociales (`legalName`).
   4. **Saneamiento de Catálogo de Productos:**
-     * Homologa las unidades empíricas ("unid", "paq", "mtr") a la codificación internacional del Catálogo 03 (`NIU`, `PK`, `MTR`).
-     * Asigna a cada producto la afectación de IGV predeterminada (`10` Gravado).
-     * Genera SKUs normalizados para productos que carecían de identificador formal.
-  5. Inserta en bloque los registros validados en la base de datos formal.
-  6. Registra en bitácora de auditoría los registros defectuosos rechazados (ej. RUCs con longitud errónea).
-  7. Retorna el resumen del procesamiento (procesados, insertados, rechazados con detalle).
-* **Postcondición:** Datos del almacén informal migrados y normalizados para la emisión de facturación formal.
+     * Homologa unidades empíricas (`legacyUnitOfMeasure`, ej. 'unid', 'mtr') a la codificación internacional del Catálogo 03 (`unitOfMeasure`: `NIU`, `MTR`).
+     * Asigna a cada producto la afectación de IGV sugerida (`suggestedIgvTaxExemptionCode` según Catálogo 07: `10` Gravado).
+     * Asigna SKUs normalizados (`productCode`).
+  5. Inserta en bloque los registros validados en la base de datos relacional formal.
+  6. Registra en bitácora de auditoría los registros defectuosos rechazados (`sanitizationErrors`).
+  7. Retorna la respuesta `LegacyMigrationResponse` con el conteo de registros procesados, migrados y rechazados.
+* **Postconditions (Postcondiciones):** Datos históricos del almacén informal migrados y homologados para emitir comprobantes de pago formales.

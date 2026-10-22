@@ -1,0 +1,29 @@
+migration_legacy:
+  post:
+    summary: Ingest and sanitize legacy warehouse system data
+    description: >
+      Processes batch historical customer, product, and stock records from the informal
+      warehouse system, applying Peruvian sanitization rules (SUNAT Modulo 11 check on RUCs,
+      homologation of empirical units to SUNAT Catalog 03, and default IGV affectation).
+    operationId: migrateLegacyData
+    tags:
+      - Migration
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/LegacyMigrationInput.yaml'
+    responses:
+      '201':
+        description: Migration batch processed and sanitized successfully.
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/LegacyMigrationResponse.yaml'
+      '400':
+        description: Batch schema validation errors or unparseable input data.
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/ErrorResponse.yaml'

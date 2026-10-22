@@ -1,0 +1,66 @@
+type: object
+required:
+  - identityDocumentType
+  - identityDocumentNumber
+  - legalName
+  - fiscalAddress
+  - ubigeo
+properties:
+  identityDocumentType:
+    type: string
+    description: >
+      Customer identity document type according to SUNAT Catalog 06.
+      '6' = RUC (Single Taxpayer Registry) - Mandatory requirement for Electronic Invoices (Type 01).
+      '1' = DNI (National Identity Document)
+      '4' = Foreign Resident Card
+      '7' = Passport
+      'A' = Diplomatic Identity Card
+    enum: ["6", "1", "4", "7", "A"]
+    example: "6"
+  identityDocumentNumber:
+    type: string
+    description: Official identity document number (11 digits for RUC, strictly validated via SUNAT Modulo 11 check digit algorithm).
+    minLength: 8
+    maxLength: 15
+    example: "20601234567"
+  legalName:
+    type: string
+    description: Official business or legal name registered in the SUNAT taxpayer registry.
+    minLength: 3
+    maxLength: 150
+    example: "DISTRIBUIDORA LOGISTICA DEL CENTRO S.A.C."
+  commercialName:
+    type: string
+    maxLength: 100
+    description: Trade or commercial name if applicable.
+    example: "LOGISTICA DEL CENTRO"
+  fiscalAddress:
+    type: string
+    description: Registered tax fiscal address of the customer.
+    maxLength: 200
+    example: "Av. Industrial 450, Urb. Vulcano, Ate, Lima"
+  ubigeo:
+    type: string
+    pattern: '^[0-9]{6}$'
+    description: 6-digit geographic location code according to INEI / SUNAT Ubigeo standards (Department/Province/District).
+    example: "150103"
+  department:
+    type: string
+    description: Department or state name.
+    example: "LIMA"
+  province:
+    type: string
+    description: Province name.
+    example: "LIMA"
+  district:
+    type: string
+    description: District or municipality name.
+    example: "ATE"
+  email:
+    type: string
+    format: email
+    description: Email address for automated delivery of the signed UBL 2.1 XML and PDF printable representation.
+    example: "contabilidad@logisticadelcentro.pe"
+  phoneNumber:
+    type: string
+    example: "+51 987654321"

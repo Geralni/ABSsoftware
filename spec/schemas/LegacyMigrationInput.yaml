@@ -1,0 +1,80 @@
+type: object
+required:
+  - batchId
+  - source
+  - customers
+  - products
+properties:
+  batchId:
+    type: string
+    description: Unique identifier for the legacy warehouse migration batch.
+    example: "LOTE-MIG-202610-01"
+  source:
+    type: string
+    description: Name or identifier of the legacy system or database source.
+    example: "ALMACEN_INFORMAL_DBF"
+  strictSanitization:
+    type: boolean
+    default: true
+    description: If true, validates RUCs using the Modulo 11 checksum algorithm and filters invalid characters.
+    example: true
+  customers:
+    type: array
+    items:
+      type: object
+      required:
+        - legacyId
+        - legalName
+        - identityDocumentNumber
+      properties:
+        legacyId:
+          type: string
+          example: "CLI-0012"
+        legalName:
+          type: string
+          example: "FERRETERIA CENTRAL S.R.L."
+        legacyIdentityDocumentType:
+          type: string
+          description: Document type in legacy warehouse (mapped to '6' RUC or '1' DNI per SUNAT Catalog 06).
+          example: "RUC"
+        identityDocumentNumber:
+          type: string
+          description: Legacy customer RUC or identity document number.
+          example: "20489912341"
+        fiscalAddress:
+          type: string
+          example: "Jr. Ayacucho 452, Huancayo"
+        ubigeo:
+          type: string
+          example: "120101"
+  products:
+    type: array
+    items:
+      type: object
+      required:
+        - legacyId
+        - description
+        - priceWithoutIgv
+      properties:
+        legacyId:
+          type: string
+          example: "ART-501"
+        description:
+          type: string
+          example: "CABLE ELECTRICO VULCANIZADO 2X14"
+        legacyUnitOfMeasure:
+          type: string
+          description: Empirical legacy unit of measure (to be standardized to SUNAT Catalog 03).
+          example: "MTR"
+        priceWithoutIgv:
+          type: number
+          format: double
+          description: Historical unit sales price excluding IGV.
+          example: 45.50
+        currentStock:
+          type: number
+          example: 120
+        suggestedIgvTaxExemptionCode:
+          type: string
+          description: Suggested IGV tax exemption code according to SUNAT Catalog 07 ('10' for Taxable).
+          example: "10"

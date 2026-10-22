@@ -1,0 +1,134 @@
+type: object
+required:
+  - lineNumber
+  - productCode
+  - description
+  - unitOfMeasure
+  - quantity
+  - unitValue
+  - unitPriceWithIgv
+  - igvTaxExemptionCode
+  - salesValue
+  - igvAmount
+properties:
+  lineNumber:
+    type: integer
+    description: Sequential item line number within the invoice (1..N).
+    example: 1
+  productCode:
+    type: string
+    maxLength: 30
+    description: Internal SKU or seller item identification code.
+    example: "PRD-TUB-01"
+  sunatProductCode:
+    type: string
+    maxLength: 10
+    description: International UNSPSC item classification code mandated by SUNAT (Catalog 25).
+    example: "40171501"
+  description:
+    type: string
+    maxLength: 250
+    description: Detailed description of the product or service provided according to SUNAT regulations.
+    example: "Tubo PVC Presión 1/2 pulgada x 5 metros"
+  unitOfMeasure:
+    type: string
+    description: >
+      Commercial unit of measure code according to SUNAT Catalog 03.
+      'NIU' = Units, 'KGM' = Kilograms, 'ZZ' = Services, 'MTR' = Meters, 'BX' = Boxes.
+    example: "NIU"
+  quantity:
+    type: number
+    format: double
+    minimum: 0.0001
+    description: Quantity of goods delivered or services rendered.
+    example: 10.0
+  unitValue:
+    type: number
+    format: double
+    minimum: 0.0
+    description: Unit sales value excluding any tax (taxable base unit value).
+    example: 15.00
+  unitPriceWithIgv:
+    type: number
+    format: double
+    minimum: 0.0
+    description: >
+      Commercial unit price including IGV and other applicable taxes.
+      Maps to cac:PricingReference / cac:AlternativeConditionPrice with SUNAT Catalog 16 code = '01' (Price inclusive of IGV).
+    example: 17.70
+  igvTaxExemptionCode:
+    type: string
+    description: >
+      IGV Tax Exemption / Affectation code according to SUNAT Catalog 07:
+      '10' = Taxable - Onerous Operation (Gravado - Operación Onerosa)
+      '11' = Taxable - Prize withdrawal (Gravado - Retiro por premio)
+      '12' = Taxable - Donation withdrawal (Gravado - Retiro por donación)
+      '20' = Exonerated - Onerous Operation (Exonerado - Operación Onerosa)
+      '30' = Unaffected - Onerous Operation (Inafecto - Operación Onerosa)
+      '40' = Export of goods or services
+    enum: ["10", "11", "12", "13", "14", "15", "16", "17", "20", "21", "30", "31", "32", "33", "34", "35", "36", "40"]
+    example: "10"
+  igvRate:
+    type: number
+    format: double
+    description: Percentage tax rate of the IGV applied to this line (18.00 for standard Peruvian transactions).
+    example: 18.00
+  igvAmount:
+    type: number
+    format: double
+    description: Total IGV monetary tax amount calculated for this line (salesValue * igvRate / 100).
+    example: 27.00
+  iscCalculationSystemCode:
+    type: string
+    description: >
+      Calculation system code for the Excise Tax (ISC) according to SUNAT Catalog 08:
+      '01' = Value-based System (Sistema al Valor - Apéndice IV, lit. A del TUO IGV)
+      '02' = Specific System (Sistema Específico - Apéndice IV, lit. B del TUO IGV)
+      '03' = Value-based on Retail Sales Price (Sistema al Valor según Precio de Venta al Público)
+    enum: ["01", "02", "03"]
+    example: "01"
+  iscRate:
+    type: number
+    format: double
+    default: 0.0
+    description: Percentage rate of the ISC tax if applicable.
+    example: 0.0
+  iscAmount:
+    type: number
+    format: double
+    default: 0.0
+    description: Total calculated ISC monetary amount for this line.
+    example: 0.0
+  appliesIcbper:
+    type: boolean
+    default: false
+    description: Flag indicating whether this line is subject to the Plastic Bag Tax (ICBPER under Peruvian Law 30884).
+    example: false
+  plasticBagQuantity:
+    type: integer
+    default: 0
+    description: Number of plastic bags subject to the ICBPER tax.
+    example: 0
+  unitIcbperAmount:
+    type: number
+    format: double
+    default: 0.0
+    description: Legally fixed ICBPER tariff per bag (e.g., 0.50 PEN).
+    example: 0.00
+  icbperAmount:
+    type: number
+    format: double
+    default: 0.0
+    description: Total ICBPER tax amount calculated for this line (plasticBagQuantity * unitIcbperAmount).
+    example: 0.00
+  lineDiscount:
+    type: number
+    format: double
+    default: 0.0
+    description: Commercial discounts applied to the line before taxes.
+    example: 0.00
+  salesValue:
+    type: number
+    format: double
+    description: Total taxable net sales base amount of the line (quantity * unitValue - lineDiscount).
+    example: 150.00

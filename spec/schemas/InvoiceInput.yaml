@@ -1,0 +1,136 @@
+type: object
+required:
+  - ublVersionId
+  - customizationId
+  - invoiceTypeCode
+  - series
+  - sequenceNumber
+  - issueDate
+  - issueTime
+  - currencyCode
+  - operationTypeCode
+  - issuerRuc
+  - issuerLegalName
+  - issuerUbigeo
+  - customer
+  - items
+  - paymentTerms
+properties:
+  ublVersionId:
+    type: string
+    description: UBL standard version mandated by SUNAT. Mandatory fixed value '2.1'. Maps to <cbc:UBLVersionID>.
+    enum: ["2.1"]
+    example: "2.1"
+  customizationId:
+    type: string
+    description: SUNAT document structure version. Mandatory fixed value '2.0'. Maps to <cbc:CustomizationID>.
+    enum: ["2.0"]
+    example: "2.0"
+  invoiceTypeCode:
+    type: string
+    description: Document Type Code according to SUNAT Catalog 01 ('01' = Factura Electrónica).
+    enum: ["01"]
+    example: "01"
+  series:
+    type: string
+    pattern: '^[F][A-Z0-9]{3}$'
+    description: 4-character alphanumeric series. For Facturas, it must start with uppercase letter 'F'.
+    example: "F001"
+  sequenceNumber:
+    type: integer
+    minimum: 1
+    maximum: 99999999
+    description: Sequential invoice correlative number (1 to 8 digits).
+    example: 123
+  issueDate:
+    type: string
+    format: date
+    description: Issue date in YYYY-MM-DD format. Maximum of 3 business/calendar days prior to the date sent to SUNAT.
+    example: "2026-10-22"
+  issueTime:
+    type: string
+    pattern: '^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$'
+    description: Issue time in military format HH:MM:SS (ISO 8601).
+    example: "10:15:30"
+  dueDate:
+    type: string
+    format: date
+    description: Due date for credit sales operations (RS 193-2020/SUNAT).
+    example: "2026-11-21"
+  currencyCode:
+    type: string
+    description: International currency code according to SUNAT Catalog 02 ('PEN' = Peruvian Soles, 'USD' = US Dollars).
+    enum: ["PEN", "USD", "EUR"]
+    example: "PEN"
+  operationTypeCode:
+    type: string
+    description: Commercial operation type according to SUNAT Catalog 51 ('0101' = Internal Sale / Venta Interna).
+    example: "0101"
+  issuerRuc:
+    type: string
+    pattern: '^(10|20)[0-9]{9}$'
+    description: 11-digit RUC number of the issuing company (ABC Software Corp) validated via Modulo 11 checksum algorithm.
+    example: "20123456789"
+  issuerLegalName:
+    type: string
+    description: Official registered legal name of the issuing company.
+    example: "ABC SOFTWARE CORP S.A.C."
+  issuerCommercialName:
+    type: string
+    example: "ABC SOFTWARE"
+  issuerUbigeo:
+    type: string
+    pattern: '^[0-9]{6}$'
+    description: 6-digit Ubigeo code of the issuer principal fiscal establishment.
+    example: "150131"
+  issuerFiscalAddress:
+    type: string
+    description: Complete fiscal address of the issuing establishment.
+    example: "Av. Las Camelias 820, San Isidro, Lima, Lima"
+  customer:
+    $ref: './Customer.yaml'
+  paymentTerms:
+    type: object
+    required:
+      - type
+      - netPendingAmount
+    properties:
+      type:
+        type: string
+        enum: ["Contado", "Credito"]
+        example: "Contado"
+      netPendingAmount:
+        type: number
+        format: double
+        description: Net pending amount to be paid (0.00 for immediate cash / Contado operations).
+        example: 0.00
+      installments:
+        type: array
+        description: Installment schedule mandatory for credit sales according to RS 193-2020/SUNAT.
+        items:
+          type: object
+          required:
+            - installmentNumber
+            - amount
+            - dueDate
+          properties:
+            installmentNumber:
+              type: integer
+              example: 1
+            amount:
+              type: number
+              format: double
+              example: 177.00
+            dueDate:
+              type: string
+              format: date
+              example: "2026-11-22"
+  items:
+    type: array
+    minItems: 1
+    items:
+      $ref: './InvoiceItem.yaml'
+  notes:
+    type: string
+    maxLength: 500
+    example: "Delivery condition at central warehouse"

@@ -1,0 +1,23 @@
+type: object
+properties:
+  voidTicketNumber:
+    type: string
+    description: Tracking ticket number assigned by SUNAT or OSE for the void communication (Comunicación de Baja).
+    example: "TKT-20261022-0091"
+  invoiceId:
+    type: string
+    format: uuid
+    description: Internal identifier of the invoice being voided.
+    example: "550e8400-e29b-41d4-a716-446655440000"
+  status:
+    type: string
+    enum: ["SOLICITADA", "BAJA_ENVIADA_SUNAT", "ANULADA_CON_CDR"]
+    example: "SOLICITADA"
+  message:
+    type: string
+    description: Status description message.
+    example: "Void communication generated and queued for transmission to SUNAT."
+  requestDate:
+    type: string
+    format: date-time
+    example: "2026-10-22T10:45:00Z"

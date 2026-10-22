@@ -1,0 +1,118 @@
+type: object
+properties:
+  id:
+    type: string
+    format: uuid
+    description: Internal software database UUID for idempotent REST tracking and transactional isolation.
+    example: "550e8400-e29b-41d4-a716-446655440000"
+  ublVersionId:
+    type: string
+    description: UBL version fixed to 2.1 for SUNAT (<cbc:UBLVersionID>).
+    example: "2.1"
+  customizationId:
+    type: string
+    description: SUNAT customization version fixed to 2.0 (<cbc:CustomizationID>).
+    example: "2.0"
+  invoiceTypeCode:
+    type: string
+    description: Document type code according to SUNAT Catalog 01 ('01' = Factura).
+    example: "01"
+  series:
+    type: string
+    description: 4-character series identifier.
+    example: "F001"
+  sequenceNumber:
+    type: integer
+    description: Correlative sequence number.
+    example: 123
+  invoiceNumber:
+    type: string
+    description: >
+      Official legal invoice identifier.
+      Maps directly and strictly to the UBL XML tag <cbc:ID>.
+      Mandatory Peruvian format: {series}-{sequenceNumber:08d}.
+    example: "F001-00000123"
+  issuerRuc:
+    type: string
+    description: 11-digit RUC of the issuing company.
+    example: "20123456789"
+  issueDate:
+    type: string
+    format: date
+    example: "2026-10-22"
+  issueTime:
+    type: string
+    example: "10:15:30"
+  currencyCode:
+    type: string
+    example: "PEN"
+  customer:
+    $ref: './Customer.yaml'
+  taxableOperationsAmount:
+    type: number
+    format: double
+    description: Total taxable base amount subject to IGV (SUNAT Catalog 07 = '10').
+    example: 150.00
+  exoneratedOperationsAmount:
+    type: number
+    format: double
+    description: Total amount of IGV-exonerated operations (SUNAT Catalog 07 = '20').
+    example: 0.00
+  unaffectedOperationsAmount:
+    type: number
+    format: double
+    description: Total amount of IGV-unaffected operations (SUNAT Catalog 07 = '30').
+    example: 0.00
+  freeOfChargeOperationsAmount:
+    type: number
+    format: double
+    description: Total amount of free-of-charge operations (SUNAT Catalog 07 = '11'..'16').
+    example: 0.00
+  totalIgv:
+    type: number
+    format: double
+    description: Total aggregated IGV amount (Tax code 1000 VAT).
+    example: 27.00
+  totalIsc:
+    type: number
+    format: double
+    description: Total aggregated ISC excise amount (Tax code 2000 EXC).
+    example: 0.00
+  totalIcbper:
+    type: number
+    format: double
+    description: Total aggregated plastic bag tax amount (Tax code 7152 OTH).
+    example: 0.00
+  totalDiscounts:
+    type: number
+    format: double
+    description: Total global and item-level commercial discounts applied.
+    example: 0.00
+  totalPayableAmount:
+    type: number
+    format: double
+    description: Final total monetary amount payable by the customer (<cbc:PayableAmount>).
+    example: 177.00
+  invoiceStatus:
+    type: string
+    enum: ["REGISTRADA", "XML_GENERADO_FIRMADO", "ENVIADA_SUNAT", "ACEPTADA", "RECHAZADA", "ANULADA"]
+    example: "XML_GENERADO_FIRMADO"
+  digestValue:
+    type: string
+    description: SHA-256 cryptographic hash value extracted from <ds:DigestValue> in the digital signature, mandatory for the QR code.
+    example: "4z0uW1eG+s/gZl8aA31k1M7ZfN0="
+  signatureValue:
+    type: string
+    description: Base64 XML-DSig signature value generated with the X.509 v3 digital certificate.
+    example: "j3jW4N3qKz+D83kld..."
+  sunatStatus:
+    type: string
+    example: "PENDIENTE_ENVIO"
+  xmlDownloadUrl:
+    type: string
+    description: Endpoint to download the generated and signed UBL 2.1 XML document.
+    example: "/api/v1/invoices/550e8400-e29b-41d4-a716-446655440000/xml"
+  createdAt:
+    type: string
+    format: date-time
+    example: "2026-10-22T10:15:32Z"

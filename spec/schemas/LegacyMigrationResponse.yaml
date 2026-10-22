@@ -1,40 +1,40 @@
 type: object
 properties:
-  loteId:
+  batchId:
     type: string
     example: "LOTE-MIG-202610-01"
-  totalClientesProcesados:
+  totalCustomersProcessed:
     type: integer
     example: 150
-  totalClientesMigrados:
+  totalCustomersMigrated:
     type: integer
     example: 146
-  totalClientesRechazados:
+  totalCustomersRejected:
     type: integer
     example: 4
-  totalProductosProcesados:
+  totalProductsProcessed:
     type: integer
     example: 820
-  totalProductosMigrados:
+  totalProductsMigrated:
     type: integer
     example: 818
-  totalProductosRechazados:
+  totalProductsRejected:
     type: integer
     example: 2
-  erroresSaneamiento:
+  sanitizationErrors:
     type: array
     items:
       type: object
       properties:
-        entidad:
+        entity:
           type: string
-          example: "Cliente"
-        idLegado:
+          example: "Customer"
+        legacyId:
           type: string
           example: "CLI-0089"
-        causa:
+        reason:
           type: string
-          example: "RUC '2010001' no tiene 11 dígitos ni pasa checksum módulo 11 SUNAT."
-  estado:
+          example: "RUC '2010001' does not contain 11 digits or fails SUNAT Modulo 11 check digit verification."
+  status:
     type: string
-    example: "MIGRACION_COMPLETADA_CON_OBSERVACIONES"
+    example: "MIGRATION_COMPLETED_WITH_WARNINGS"

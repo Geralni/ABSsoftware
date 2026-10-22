@@ -1,53 +1,53 @@
 openapi: 3.0.3
 info:
-  title: ABC Software Corp - Sistema de Facturación Electrónica SUNAT UBL 2.1
+  title: ABC Software Corp - SUNAT UBL 2.1 Electronic Invoicing API
   description: >
-    API REST para la emisión, anulación, consulta y migración de comprobantes
-    electrónicos bajo la normativa tributaria peruana (SUNAT) y el estándar
-    OASIS UBL 2.1 (UBL-Invoice-2.1.xsd). Soporta clientes nativos Windows (.MSI)
-    y Android (.APK).
+    REST API for the issuance, voiding, consultation, and migration of electronic
+    invoicing documents compliant with Peruvian tax regulations (SUNAT) and the
+    OASIS UBL 2.1 standard (`UBL-Invoice-2.1.xsd`). Built to serve cross-platform
+    native clients on Windows (.MSI) and Android (.APK).
   version: 1.0.0
   contact:
-    name: Arquitectura de Software - ABC Software Corp
-    email: arquitectura@abcsoftware.pe
+    name: Software Architecture Team - ABC Software Corp
+    email: architecture@abcsoftware.pe
 
 servers:
   - url: https://api.abcsoftware.pe/api/v1
-    description: Servidor Central de Producción
+    description: Production Central Server
   - url: https://api-qa.abcsoftware.pe/api/v1
-    description: Servidor de Pruebas (Ambiente Beta SUNAT / OSE)
+    description: QA / Staging Environment (SUNAT Beta / Homologation)
   - url: http://localhost:8000/api/v1
-    description: Monolito Local / Servidor de Desarrollo en Tienda
+    description: Local Development / In-Store POS Monolith
 
 paths:
-  /facturas:
-    $ref: './spec/paths/facturas.yaml#/facturas'
-  /facturas/{id}:
-    $ref: './spec/paths/facturas.yaml#/facturas_id'
-  /facturas/{id}/xml:
-    $ref: './spec/paths/facturas.yaml#/facturas_id_xml'
-  /facturas/{id}/anular:
-    $ref: './spec/paths/facturas.yaml#/facturas_id_anular'
-  /migracion/legado:
-    $ref: './spec/paths/migracion.yaml#/migracion_legado'
+  /invoices:
+    $ref: './spec/paths/invoices.yaml#/invoices'
+  /invoices/{id}:
+    $ref: './spec/paths/invoices.yaml#/invoices_id'
+  /invoices/{id}/xml:
+    $ref: './spec/paths/invoices.yaml#/invoices_id_xml'
+  /invoices/{id}/void:
+    $ref: './spec/paths/invoices.yaml#/invoices_id_void'
+  /migration/legacy:
+    $ref: './spec/paths/migration.yaml#/migration_legacy'
 
 components:
   schemas:
-    Cliente:
-      $ref: './spec/schemas/Cliente.yaml'
-    DetalleFactura:
-      $ref: './spec/schemas/DetalleFactura.yaml'
-    FacturaInput:
-      $ref: './spec/schemas/FacturaInput.yaml'
-    FacturaResponse:
-      $ref: './spec/schemas/FacturaResponse.yaml'
-    AnulacionInput:
-      $ref: './spec/schemas/AnulacionInput.yaml'
-    AnulacionResponse:
-      $ref: './spec/schemas/AnulacionResponse.yaml'
-    MigracionLegado:
-      $ref: './spec/schemas/MigracionLegado.yaml'
-    MigracionResponse:
-      $ref: './spec/schemas/MigracionResponse.yaml'
+    Customer:
+      $ref: './spec/schemas/Customer.yaml'
+    InvoiceItem:
+      $ref: './spec/schemas/InvoiceItem.yaml'
+    InvoiceInput:
+      $ref: './spec/schemas/InvoiceInput.yaml'
+    InvoiceResponse:
+      $ref: './spec/schemas/InvoiceResponse.yaml'
+    VoidInvoiceInput:
+      $ref: './spec/schemas/VoidInvoiceInput.yaml'
+    VoidInvoiceResponse:
+      $ref: './spec/schemas/VoidInvoiceResponse.yaml'
+    LegacyMigrationInput:
+      $ref: './spec/schemas/LegacyMigrationInput.yaml'
+    LegacyMigrationResponse:
+      $ref: './spec/schemas/LegacyMigrationResponse.yaml'
     ErrorResponse:
       $ref: './spec/schemas/ErrorResponse.yaml'
