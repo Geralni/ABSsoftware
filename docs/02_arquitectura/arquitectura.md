@@ -113,12 +113,12 @@ flowchart TB
         CtrlMigration["🎮 MigrationRestController<br/>POST /api/v1/migration/legacy"]
     end
 
-    WinMSI -->|HTTP / JSON (OpenAPI)| CtrlInvoice
-    WinMSI -->|HTTP / JSON (OpenAPI)| CtrlVoid
-    WinMSI -->|HTTP / JSON (OpenAPI)| CtrlMigration
+    WinMSI -->|"HTTP / JSON (OpenAPI)"| CtrlInvoice
+    WinMSI -->|"HTTP / JSON (OpenAPI)"| CtrlVoid
+    WinMSI -->|"HTTP / JSON (OpenAPI)"| CtrlMigration
     
-    AndroidAPK -->|HTTP / JSON (OpenAPI)| CtrlInvoice
-    AndroidAPK -->|HTTP / JSON (OpenAPI)| CtrlVoid
+    AndroidAPK -->|"HTTP / JSON (OpenAPI)"| CtrlInvoice
+    AndroidAPK -->|"HTTP / JSON (OpenAPI)"| CtrlVoid
 
     %% INPUT PORTS (USE CASE INTERFACES)
     subgraph InputPorts["INPUT PORTS (Application Use Case Interfaces)"]
@@ -201,5 +201,5 @@ flowchart TB
     PortStorage --> StorageXml
 
     %% EXTERNAL COMMUNICATION
-    ClientSunat <==>|SOAP XML-DSig ZIP / CDR Response| SunatOSE["🏛️ SUNAT / OSE (Official Tax Authority Servers)"]
+    ClientSunat <==>|"SOAP XML-DSig ZIP / CDR Response"| SunatOSE["🏛️ SUNAT / OSE (Official Tax Authority Servers)"]
 ```
